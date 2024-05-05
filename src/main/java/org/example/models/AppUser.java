@@ -4,20 +4,20 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "users")
-public class User {
+public class AppUser {
     @Id
     private String id;
     private String username;
     private String password;
-    private String role;
+    private String roles; // Simplified: assuming a single role for simplicity
 
     // Constructors, getters, and setters
-    public User() {}
+    public AppUser() {}
 
-    public User(String username, String password, String role) {
+    public AppUser(String username, String password, String roles) {
         this.username = username;
         this.password = password;
-        this.role = role;
+        this.roles = roles;
     }
 
     public String getId() {
@@ -44,11 +44,11 @@ public class User {
         this.password = password;
     }
 
-    public String getRole() {
-        return role;
+    public String getRoles() {
+        return roles;
     }
 
-    public void setRole(String role) {
-        this.role = role;
+    public void setRoles(String roles) {
+        this.roles = roles;
     }
 }

@@ -9,8 +9,14 @@ import java.io.IOException;
 public class CustomAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
-        // Redirects to the home page after successful authentication
-        response.sendRedirect("/home");
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+        try {
+            // Redirects to the home page after successful authentication
+            response.sendRedirect("/home");
+        } catch (IOException e) {
+            // Handle IO exception gracefully
+            // You might want to log the exception for debugging purposes
+            System.err.println("Error redirecting to home page: " + e.getMessage());
+        }
     }
 }
