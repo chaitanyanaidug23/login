@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Faculty Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/css/bootstrap.min.css">
     <style>
         body {
             font-family: 'Arial', sans-serif;
             background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
         }
         header {
             background-color: #007BFF;
@@ -23,26 +22,8 @@
             background: white;
             border-radius: 8px;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid #dddddd;
-            text-align: left;
-            padding: 8px;
-        }
-        th {
-            background-color: #007BFF;
-            color: white;
-        }
-        input, button, textarea {
-            margin: 5px;
-            padding: 8px;
-        }
-        textarea {
-            width: 95%;
-            height: 100px;
+        .table-responsive {
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -53,115 +34,135 @@
 
 <section>
     <h2>Courses Taught</h2>
-    <table id="courses-table">
-        <thead>
-        <tr>
-            <th>Course Name</th>
-            <th>Semester</th>
-            <th>Description</th>
-        </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-    <button onclick="fetchCourses()">Refresh Courses</button>
+    <div class="input-group mb-3">
+        <input type="text" id="facultyId" class="form-control" placeholder="Enter Faculty ID" required>
+        <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="button" onclick="fetchCourses()">Fetch Courses</button>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table" id="courses-table">
+            <thead class="thead-dark">
+            <tr>
+                <th>Course Name</th>
+                <th>Semester</th>
+                <th>Status</th>
+                <th>Manage</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 </section>
 
 <section>
-    <h2>Add a Quiz</h2>
-    <form id="quiz-form">
-        <input type="text" id="courseId" placeholder="Course ID" required>
-        <input type="text" id="quizTitle" placeholder="Quiz Title" required>
-        <input type="number" id="quizDuration" placeholder="Duration (in minutes)" required>
-        <input type="checkbox" id="isGraded">
-        <label for="isGraded">Is Graded?</label>
-        <button type="button" onclick="addQuiz()">Add Quiz</button>
-    </form>
+    <h2>Add Syllabus</h2>
+    <input type="text" id="courseIdForSyllabus" class="form-control" placeholder="Course ID" required>
+    <textarea id="syllabusContent" class="form-control" placeholder="Enter syllabus details" required></textarea>
+    <button type="button" class="btn btn-success" onclick="updateSyllabus()">Update Syllabus</button>
 </section>
 
 <section>
-    <h2>Update Syllabus</h2>
-    <form id="syllabus-form">
-        <input type="text" id="courseIdForSyllabus" placeholder="Course ID" required>
-        <textarea id="syllabusContent" placeholder="Enter syllabus details" required></textarea>
-        <button type="button" onclick="updateSyllabus()">Update Syllabus</button>
-    </form>
+    <h2>Manage Quizzes and Assignments</h2>
+    <input type="text" id="courseIdForQuiz" class="form-control" placeholder="Course ID for Quiz" required>
+    <input type="text" id="quizTitle" class="form-control" placeholder="Quiz Title" required>
+    <input type="number" id="quizDuration" class="form-control" placeholder="Duration (in minutes)" required>
+    <div class="form-check">
+        <input type="checkbox" id="isGraded" class="form-check-input">
+        <label for="isGraded" class="form-check-label">Is Graded?</label>
+    </div>
+    <button type="button" class="btn btn-success" onclick="addQuiz()">Add Quiz</button>
+
+    <input type="text" id="courseIdForAssignment" class="form-control" placeholder="Course ID for Assignment" required>
+    <input type="text" id="assignmentDescription" class="form-control" placeholder="Assignment Description" required>
+    <button type="button" class="btn btn-success" onclick="addAssignment()">Add Assignment</button>
 </section>
 
 <section>
-    <h2>Post an Announcement</h2>
-    <form id="announcement-form">
-        <input type="text" id="courseIdForAnnouncement" placeholder="Course ID" required>
-        <textarea id="announcementText" placeholder="Enter announcement" required></textarea>
-        <button type="button" onclick="postAnnouncement()">Post Announcement</button>
-    </form>
+    <h2>Announcements</h2>
+    <input type="text" id="courseIdForAnnouncement" class="form-control" placeholder="Course ID" required>
+    <textarea id="announcementText" class="form-control" placeholder="Enter announcement" required></textarea>
+    <button type="button" class="btn btn-primary" onclick="postAnnouncement()">Post Announcement</button>
 </section>
 
 <script>
     const baseUrl = '/api/faculty';
-    const facultyId = '6638500f7feb0c76a296319e'; // This should be dynamically assigned
-
-    function getCsrfToken() {
-        const cookies = document.cookie.split(';');
-        let csrfToken = '';
-        cookies.forEach(cookie => {
-            const parts = cookie.split('=');
-            if (parts[0].trim() === 'XSRF-TOKEN') {
-                csrfToken = parts[1];
-            }
-        });
-        return csrfToken;
-    }
 
     function fetchCourses() {
+        const facultyId = document.getElementById('facultyId').value;
         fetch(`${baseUrl}/${facultyId}/courses`)
             .then(response => response.json())
-            .then(courses => {
-                const table = document.getElementById('courses-table').getElementsByTagName('tbody')[0];
-                table.innerHTML = ''; // Clear existing rows
-                courses.forEach(course => {
-                    const row = table.insertRow();
-                    row.insertCell().textContent = course.name;
-                    row.insertCell().textContent = course.semester;
-                    row.insertCell().textContent = course.description;
-                });
+            .then(data => {
+                if (data.success) {
+                    const courses = data.data;
+                    const table = document.getElementById('courses-table').getElementsByTagName('tbody')[0];
+                    table.innerHTML = ''; // Clear existing rows
+                    courses.forEach(course => {
+                        const row = table.insertRow();
+                        row.insertCell().textContent = course.name;
+                        row.insertCell().textContent = course.semester;
+                        row.insertCell().textContent = course.published ? 'Published' : 'Unpublished';
+                        let manageCell = row.insertCell();
+                        manageCell.appendChild(createButton('View Students', () => viewStudents(course._id)));
+                        manageCell.appendChild(createButton('View Grades', () => viewGrades(course._id)));
+                    });
+                } else {
+                    alert(data.message);
+                }
             })
             .catch(error => {
                 console.error('Error fetching courses:', error);
-                alert('Failed to fetch courses. Please check the console for errors.');
+            });
+    }
+
+    function createButton(text, action) {
+        let btn = document.createElement('button');
+        btn.className = 'btn btn-small btn-info';
+        btn.textContent = text;
+        btn.onclick = action;
+        return btn;
+    }
+
+    function updateSyllabus() {
+        const courseId = document.getElementById('courseIdForSyllabus').value;
+        const syllabusContent = document.getElementById('syllabusContent').value;
+        fetch(`${baseUrl}/courses/${courseId}/syllabus`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ syllabusContent })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Syllabus updated successfully!');
+                } else {
+                    throw new Error(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Failed to update syllabus:', error);
+                alert(error.message);
             });
     }
 
     function addQuiz() {
-        const courseId = document.getElementById('courseId').value;
+        const courseId = document.getElementById('courseIdForQuiz').value;
         const title = document.getElementById('quizTitle').value;
         const duration = parseInt(document.getElementById('quizDuration').value, 10);
         const isGraded = document.getElementById('isGraded').checked;
 
-        const quizData = {
-            title,
-            duration,
-            isGraded,
-            questions: [] // Assuming questions need to be dynamically added or managed differently
-        };
-
-        fetch(`${baseUrl}/course/${courseId}/quizzes`, {
+        fetch(`${baseUrl}/courses/${courseId}/quizzes`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-XSRF-TOKEN': getCsrfToken() // CSRF token header
-            },
-            body: JSON.stringify(quizData)
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, duration, isGraded, questions: [] })
         })
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
-                } else {
-                    throw new Error('Failed to add quiz.');
-                }
-            })
+            .then(response => response.json())
             .then(data => {
-                alert('Quiz added successfully!');
-                console.log(data);
+                if (data.success) {
+                    alert('Quiz added successfully!');
+                } else {
+                    throw new Error(data.message);
+                }
             })
             .catch(error => {
                 console.error('Failed to add quiz:', error);
@@ -169,31 +170,25 @@
             });
     }
 
-    function updateSyllabus() {
-        const courseId = document.getElementById('courseIdForSyllabus').value;
-        const syllabusContent = document.getElementById('syllabusContent').value;
+    function addAssignment() {
+        const courseId = document.getElementById('courseIdForAssignment').value;
+        const description = document.getElementById('assignmentDescription').value;
 
-        fetch(`${baseUrl}/course/${courseId}/syllabus`, {
+        fetch(`${baseUrl}/courses/${courseId}/assignments`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-XSRF-TOKEN': getCsrfToken() // CSRF token header
-            },
-            body: JSON.stringify({ syllabusContent })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ description })
         })
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Assignment added successfully!');
                 } else {
-                    throw new Error('Failed to update syllabus.');
+                    throw new Error(data.message);
                 }
             })
-            .then(data => {
-                alert('Syllabus updated successfully!');
-                console.log(data);
-            })
             .catch(error => {
-                console.error('Failed to update syllabus:', error);
+                console.error('Failed to add assignment:', error);
                 alert(error.message);
             });
     }
@@ -202,24 +197,18 @@
         const courseId = document.getElementById('courseIdForAnnouncement').value;
         const announcement = document.getElementById('announcementText').value;
 
-        fetch(`${baseUrl}/course/${courseId}/announcements`, {
+        fetch(`${baseUrl}/courses/${courseId}/announcements`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-XSRF-TOKEN': getCsrfToken() // CSRF token header
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ announcement })
         })
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
-                } else {
-                    throw new Error('Failed to post announcement.');
-                }
-            })
+            .then(response => response.json())
             .then(data => {
-                alert('Announcement posted successfully!');
-                console.log(data);
+                if (data.success) {
+                    alert('Announcement posted successfully!');
+                } else {
+                    throw new Error(data.message);
+                }
             })
             .catch(error => {
                 console.error('Failed to post announcement:', error);
@@ -227,7 +216,14 @@
             });
     }
 
-    // Initial fetch on page load
+    function viewStudents(courseId) {
+        // Code for fetching students for the course
+    }
+
+    function viewGrades(courseId) {
+        // Code for fetching and managing grades
+    }
+
     window.onload = fetchCourses;
 </script>
 </body>

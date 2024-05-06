@@ -1,15 +1,17 @@
 package org.example.services;
 
 import org.example.models.*;
-import org.example.repositories.CourseRepository;
-import org.example.repositories.FacultyRepository;
-import org.example.repositories.GradeRepository;
+import org.example.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class FacultyService {
@@ -20,6 +22,14 @@ public class FacultyService {
     private CourseRepository courseRepository;
     @Autowired
     private GradeRepository gradeRepository;
+    @Autowired
+    private AssignmentRepository assignmentRepository;
+
+    @Autowired
+    private QuizRepository quizRepository;
+
+    private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
 
     public List<Faculty> findAllFaculty() {
         return facultyRepository.findAll();
@@ -46,7 +56,12 @@ public class FacultyService {
             return new ApiResponse<>(false, null, "No courses found or faculty ID not valid");
         }
     }
-
+    // Method to create Question objects from strings
+    private List<Question> createQuestions(List<String> titles) {
+        return titles.stream()
+                .map(title -> new Question(title, Arrays.asList("Option 1", "Option 2", "Option 3"), "Option 1", 5))
+                .collect(Collectors.toList());
+    }
 
     @Transactional
     public ApiResponse<Boolean> updateSyllabus(String courseId, String syllabusContent) {
@@ -82,11 +97,12 @@ public class FacultyService {
     }
 
     @Transactional
-    public ApiResponse<Boolean> addAssignment(String courseId, String description, String dueDate) {
+    public ApiResponse<Boolean> addAssignment(String courseId, String description, Date dueDate) {
         return courseRepository.findById(courseId)
                 .map(course -> {
-                    Assignment newAssignment = new Assignment(description, dueDate);
-                    course.getAssignments().add(String.valueOf(newAssignment));
+                    Assignment newAssignment = new Assignment(course.getId(), description, dueDate, new Date());
+                    assignmentRepository.save(newAssignment); // Save the new assignment
+                    course.getAssignments().add(newAssignment.getId());
                     courseRepository.save(course);
                     return new ApiResponse<>(true, true, "Assignment added successfully.");
                 })
@@ -94,11 +110,13 @@ public class FacultyService {
     }
 
     @Transactional
-    public ApiResponse<Boolean> addQuiz(String courseId, List<String> questions, String title, int duration, boolean isGraded) {
+    public ApiResponse<Boolean> addQuiz(String courseId, List<String> questionTitles, String title, int duration, boolean isGraded) {
         return courseRepository.findById(courseId)
                 .map(course -> {
-                    Quiz newQuiz = new Quiz(title, duration, isGraded, questions);
-                    course.getQuizzes().add(String.valueOf(newQuiz));
+                    List<Question> questions = createQuestions(questionTitles);
+                    Quiz newQuiz = new Quiz(course.getId(), title, duration, isGraded, questions);
+                    quizRepository.save(newQuiz); // Save the new quiz
+                    course.getQuizzes().add(newQuiz.getId());
                     courseRepository.save(course);
                     return new ApiResponse<>(true, true, "Quiz added successfully.");
                 })

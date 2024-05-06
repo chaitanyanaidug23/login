@@ -5,6 +5,7 @@ import org.example.models.Grade;
 import org.example.models.QuizCreationRequest;
 import org.example.models.ApiResponse;
 import org.example.services.FacultyService;
+import org.example.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -13,9 +14,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Date;
 
 @Controller
 @RequestMapping("/faculty")
@@ -24,7 +25,7 @@ public class FacultyController {
     @Autowired
     private FacultyService facultyService;
 
-    @GetMapping("/faculty")
+    @GetMapping("")
     public String facultyDashboard(Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String facultyId = auth.getName(); // Assumes the username is the faculty ID
@@ -84,8 +85,13 @@ public class FacultyController {
     @PreAuthorize("hasAuthority('ROLE_FACULTY')")
     @PostMapping("/api/course/{courseId}/assignments")
     public ResponseEntity<ApiResponse<Boolean>> addAssignment(@PathVariable String courseId, @RequestBody String description, @RequestParam String dueDate) {
-        ApiResponse<Boolean> result = facultyService.addAssignment(courseId, description, dueDate);
-        return ResponseEntity.status(result.isSuccess() ? 200 : 400).body(result);
+        try {
+            Date due = DateUtils.parseDate(dueDate);
+            ApiResponse<Boolean> result = facultyService.addAssignment(courseId, description, due);
+            return ResponseEntity.status(result.isSuccess() ? 200 : 400).body(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ApiResponse<>(false, false, "Invalid date format"));
+        }
     }
 
     @PreAuthorize("hasAuthority('ROLE_FACULTY')")

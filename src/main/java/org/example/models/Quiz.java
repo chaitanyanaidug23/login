@@ -1,22 +1,47 @@
 package org.example.models;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.List;
 
+@Document(collection = "quizzes")
 public class Quiz {
+    @Id
+    private String id;
+    private String courseId;
     private String title;
-    private int duration; // Duration in minutes
+    private int duration;
     private boolean isGraded;
-    private List<String> questions; // Assuming questions are just strings for simplicity.
+    private List<Question> questions;
 
-    // Constructor for the Quiz class with parameters for all fields
-    public Quiz(String title, int duration, boolean isGraded, List<String> questions) {
+    public Quiz() {
+    }
+
+    public Quiz(String courseId, String title, int duration, boolean isGraded, List<Question> questions) {
+        this.courseId = courseId;
         this.title = title;
         this.duration = duration;
         this.isGraded = isGraded;
         this.questions = questions;
     }
 
-    // Getters and Setters for each property
+    // Getters and Setters
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getCourseId() {
+        return courseId;
+    }
+
+    public void setCourseId(String courseId) {
+        this.courseId = courseId;
+    }
+
     public String getTitle() {
         return title;
     }
@@ -37,15 +62,15 @@ public class Quiz {
         return isGraded;
     }
 
-    public void setGraded(boolean graded) {
-        isGraded = graded;
+    public void setGraded(boolean isGraded) {
+        this.isGraded = isGraded;
     }
 
-    public List<String> getQuestions() {
+    public List<Question> getQuestions() {
         return questions;
     }
 
-    public void setQuestions(List<String> questions) {
+    public void setQuestions(List<Question> questions) {
         this.questions = questions;
     }
 }
