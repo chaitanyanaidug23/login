@@ -17,7 +17,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    // Specific exception handlers can be added here
+    // Additional specific exception handlers can be implemented here
 
     // Nested class to format error responses
     private static class ErrorDetails {
@@ -31,7 +31,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             this.details = details;
         }
 
-        // Getters
+        // Getters and possibly setters if mutable is desired
         public int getStatusCode() {
             return statusCode;
         }

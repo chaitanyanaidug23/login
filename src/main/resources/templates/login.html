@@ -2,12 +2,30 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        form {
+            margin-top: 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        input, button {
+            margin: 10px;
+            padding: 10px;
+            width: 200px;
+        }
+    </style>
 </head>
 <body>
-<form th:action="@{/login}" method="post">
+<form onsubmit="handleLogin(event)">
     <div>
         <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required>
+        <input type="text" id="username" name="username" required minlength="3">
     </div>
     <div>
         <label for="password">Password:</label>
@@ -16,6 +34,34 @@
     <div>
         <button type="submit">Login</button>
     </div>
+    <div>
+        <p id="error-message" style="color: red;"></p>
+    </div>
 </form>
+
+<script>
+    function handleLogin(event) {
+        event.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        fetch('/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
+        })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = 'faculty.html'; // Redirect to faculty page
+                } else {
+                    document.getElementById('error-message').textContent = 'Invalid username or password';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('error-message').textContent = 'Login error, please try again later';
+            });
+    }
+</script>
 </body>
 </html>

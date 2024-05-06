@@ -1,91 +1,97 @@
 package org.example.controllers;
 
 import org.example.models.Course;
-import org.example.models.Faculty;
+import org.example.models.Grade;
 import org.example.models.QuizCreationRequest;
+import org.example.models.ApiResponse;
 import org.example.services.FacultyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
-import java.util.Optional;
 
-@RestController
-@RequestMapping("/api/faculty")
+@Controller
+@RequestMapping("/faculty")
 public class FacultyController {
 
     @Autowired
     private FacultyService facultyService;
 
-    // Existing methods for managing faculty...
-
-    // Get list of courses taught by the faculty
-    @GetMapping("/{facultyId}/courses")
-    public ResponseEntity<List<Course>> getCourses(@PathVariable String facultyId) {
-        return ResponseEntity.ok(facultyService.getCourses(facultyId));
-    }
-
-    @PostMapping("/course/{courseId}/quizzes")
-    public ResponseEntity<?> addQuiz(@PathVariable String courseId, @RequestBody QuizCreationRequest quizRequest) {
-        boolean result = facultyService.addQuiz(courseId, quizRequest.getQuestions(), quizRequest.getTitle(), quizRequest.getDuration(), quizRequest.isGraded());
-        if (result) {
-            return ResponseEntity.ok("Quiz added successfully.");
+    @GetMapping("/faculty")
+    public String facultyDashboard(Model model) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String facultyId = auth.getName(); // Assumes the username is the faculty ID
+        ApiResponse<List<Course>> apiResponse = facultyService.getCourses(facultyId);
+        if (apiResponse.isSuccess()) {
+            model.addAttribute("courses", apiResponse.getData());
+        } else {
+            model.addAttribute("error", apiResponse.getMessage());
         }
-        return ResponseEntity.badRequest().body("Failed to add quiz.");
+        return "faculty";  // Assumes you have a faculty.html in the /resources/templates directory
     }
 
-    // Add content to the Syllabus section
-    @PostMapping("/course/{courseId}/syllabus")
-    public ResponseEntity<String> updateSyllabus(@PathVariable String courseId, @RequestBody String syllabusContent) {
-        boolean updated = facultyService.updateSyllabus(courseId, syllabusContent);
-        if (updated) {
-            return ResponseEntity.ok("Syllabus updated successfully.");
-        }
-        return ResponseEntity.badRequest().body("Failed to update syllabus.");
+    @PreAuthorize("hasAuthority('ROLE_FACULTY')")
+    @GetMapping("/api/courses")
+    public ResponseEntity<ApiResponse<List<Course>>> getCourses() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String facultyId = auth.getName();
+        ApiResponse<List<Course>> response = facultyService.getCourses(facultyId);
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/course/{courseId}/students")
-    public ResponseEntity<List<String>> getStudentsByCourse(@PathVariable String courseId) {
-        List<String> studentIds = facultyService.getStudentsByCourse(courseId);
-        return ResponseEntity.ok(studentIds);
+    @PreAuthorize("hasAuthority('ROLE_FACULTY')")
+    @PostMapping("/api/course/{courseId}/quizzes")
+    public ResponseEntity<ApiResponse<Boolean>> addQuiz(@PathVariable String courseId, @Valid @RequestBody QuizCreationRequest quizRequest) {
+        ApiResponse<Boolean> result = facultyService.addQuiz(courseId, quizRequest.getQuestions(), quizRequest.getTitle(), quizRequest.getDuration(), quizRequest.isGraded());
+        return ResponseEntity.status(result.isSuccess() ? 200 : 400).body(result);
     }
 
-    // View grades for a course
-    @GetMapping("/course/{courseId}/grades")
-    public ResponseEntity<?> getGrades(@PathVariable String courseId) {
-        return ResponseEntity.ok(facultyService.getGradesByCourse(courseId));
+    @PreAuthorize("hasAuthority('ROLE_FACULTY')")
+    @PostMapping("/api/course/{courseId}/syllabus")
+    public ResponseEntity<ApiResponse<Boolean>> updateSyllabus(@PathVariable String courseId, @RequestBody String syllabusContent) {
+        ApiResponse<Boolean> updated = facultyService.updateSyllabus(courseId, syllabusContent);
+        return ResponseEntity.status(updated.isSuccess() ? 200 : 400).body(updated);
     }
 
-    // Assign grades to a student for a course
-    @PostMapping("/course/{courseId}/student/{studentId}/grade")
-    public ResponseEntity<?> assignGrade(@PathVariable String courseId, @PathVariable String studentId, @RequestBody String grade) {
-        boolean result = facultyService.assignGrade(courseId, studentId, grade);
-        if (result) {
-            return ResponseEntity.ok("Grade assigned successfully.");
-        }
-        return ResponseEntity.badRequest().body("Failed to assign grade.");
+    @PreAuthorize("hasAuthority('ROLE_FACULTY')")
+    @GetMapping("/api/course/{courseId}/students")
+    public ResponseEntity<ApiResponse<List<String>>> getStudentsByCourse(@PathVariable String courseId) {
+        ApiResponse<List<String>> studentsResponse = facultyService.getStudentsByCourse(courseId);
+        return ResponseEntity.ok(studentsResponse);
     }
 
-    // Add an assignment to a course
-    @PostMapping("/course/{courseId}/assignments")
-    public ResponseEntity<?> addAssignment(@PathVariable String courseId, @RequestBody String description, String dueDate) {
-        boolean result = facultyService.addAssignment(courseId, description, dueDate);
-        if (result) {
-            return ResponseEntity.ok("Assignment added successfully.");
-        }
-        return ResponseEntity.badRequest().body("Failed to add assignment.");
+    @PreAuthorize("hasAuthority('ROLE_FACULTY')")
+    @GetMapping("/api/course/{courseId}/grades")
+    public ResponseEntity<ApiResponse<List<Grade>>> getGrades(@PathVariable String courseId) {
+        ApiResponse<List<Grade>> gradesResponse = facultyService.getGradesByCourse(courseId);
+        return ResponseEntity.ok(gradesResponse);
     }
 
+    @PreAuthorize("hasAuthority('ROLE_FACULTY')")
+    @PostMapping("/api/course/{courseId}/student/{studentId}/grade")
+    public ResponseEntity<ApiResponse<Boolean>> assignGrade(@PathVariable String courseId, @PathVariable String studentId, @RequestBody String grade) {
+        ApiResponse<Boolean> result = facultyService.assignGrade(courseId, studentId, grade);
+        return ResponseEntity.status(result.isSuccess() ? 200 : 400).body(result);
+    }
 
-    // Post an announcement in a course
-    @PostMapping("/course/{courseId}/announcements")
-    public ResponseEntity<?> postAnnouncement(@PathVariable String courseId, @RequestBody String announcement) {
-        boolean posted = facultyService.postAnnouncement(courseId, announcement);
-        if (posted) {
-            return ResponseEntity.ok("Announcement posted successfully.");
-        }
-        return ResponseEntity.badRequest().body("Failed to post announcement.");
+    @PreAuthorize("hasAuthority('ROLE_FACULTY')")
+    @PostMapping("/api/course/{courseId}/assignments")
+    public ResponseEntity<ApiResponse<Boolean>> addAssignment(@PathVariable String courseId, @RequestBody String description, @RequestParam String dueDate) {
+        ApiResponse<Boolean> result = facultyService.addAssignment(courseId, description, dueDate);
+        return ResponseEntity.status(result.isSuccess() ? 200 : 400).body(result);
+    }
+
+    @PreAuthorize("hasAuthority('ROLE_FACULTY')")
+    @PostMapping("/api/course/{courseId}/announcements")
+    public ResponseEntity<ApiResponse<Boolean>> postAnnouncement(@PathVariable String courseId, @RequestBody String announcement) {
+        ApiResponse<Boolean> posted = facultyService.postAnnouncement(courseId, announcement);
+        return ResponseEntity.status(posted.isSuccess() ? 200 : 400).body(posted);
     }
 }
