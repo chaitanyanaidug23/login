@@ -3,10 +3,12 @@ package org.example.services;
 import org.example.models.*;
 import org.example.repositories.CourseRepository;
 import org.example.repositories.FacultyRepository;
+import org.example.repositories.GradeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -57,11 +59,18 @@ public class FacultyService {
                 .orElse(null);
     }
 
+
+    @Autowired
+    private GradeRepository gradeRepository;
+
     public List<Grade> getGradesByCourse(String courseId) {
-        return courseRepository.findById(courseId)
-                .map(Course::getGrades)  // Ensure this returns List<Grade>
-                .orElse(null);
+        Course course = courseRepository.findById(courseId).orElse(null);
+        if (course != null && course.getGrades() != null) {
+            return gradeRepository.findAllById(course.getGrades());  // Assuming `course.getGrades()` returns List<String> of Grade IDs
+        }
+        return new ArrayList<>();
     }
+
 
     @Transactional
     public boolean assignGrade(String courseId, String studentId, String grade) {

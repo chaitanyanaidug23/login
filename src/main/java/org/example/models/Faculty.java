@@ -1,7 +1,6 @@
 package org.example.models;
 
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.List;
 
@@ -12,10 +11,20 @@ public class Faculty {
     private String name;
     private String email;
     private String department;
-    @DBRef
-    private List<Course> courses;  // Reference to courses taught by the faculty
+    private List<String> courses; // Assuming courses are referenced by their IDs as strings
+
+    public Faculty() {
+    }
+
+    public Faculty(String name, String email, String department, List<String> courses) {
+        this.name = name;
+        this.email = email;
+        this.department = department;
+        this.courses = courses;
+    }
 
     // Getters and setters
+
     public String getId() {
         return id;
     }
@@ -48,11 +57,11 @@ public class Faculty {
         this.department = department;
     }
 
-    public List<Course> getCourses() {
+    public List<String> getCourses() {
         return courses;
     }
 
-    public void setCourses(List<Course> courses) {
+    public void setCourses(List<String> courses) {
         this.courses = courses;
     }
 }

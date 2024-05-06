@@ -1,58 +1,34 @@
 package org.example.models;
 
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
-import javax.validation.constraints.NotBlank;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotBlank;
 
 @Document(collection = "courses")
 public class Course {
     @Id
     private String id;
-
-    @NotBlank(message = "Course name must not be empty")
     private String name;
-
-    @NotBlank(message = "Semester must not be empty")
     private String semester;
+    private String facultyId;
+    private boolean published;
+    private String description;
+    private String syllabus;
+    private List<String> assignments;
+    private List<String> quizzes;
+    private List<String> announcements;
+    private List<String> enrolledStudents;
+    private List<String> grades;
+    private Date createdDate;
+    private Date updatedDate;
 
-    private String facultyId; // Simple reference to Faculty for queries
+    public Course() {
+    }
 
-    @DBRef
-    private Faculty faculty; // Full DB reference to a Faculty document
-
-    private boolean published; // Indicates if the course is currently visible to students
-
-    @NotBlank(message = "Description must not be empty")
-    private String description; // Brief description of the course
-
-    private String syllabus; // Detailed syllabus content
-
-    private List<String> assignments = new ArrayList<>(); // List of assignments
-    private List<String> quizzes = new ArrayList<>(); // List of quizzes
-    private List<String> announcements = new ArrayList<>(); // Course-related announcements
-    private List<String> enrolledStudents; // Simplified list of enrolled students
-    private List<Grade> grades; // List of grades for assignments and exams
-
-    @CreatedDate
-    private Date createdDate; // The date when the course document was created
-
-    @LastModifiedDate
-    private Date updatedDate; // The date when the course document was last updated
-
-    // Constructors
-    public Course() {}
-
-    public Course(String id, String name, String semester, String facultyId, boolean published, String description,
-                  String syllabus, List<String> assignments, List<String> quizzes, List<String> announcements) {
-        this.id = id;
+    public Course(String name, String semester, String facultyId, boolean published, String description,
+                  String syllabus, List<String> assignments, List<String> quizzes, List<String> announcements,
+                  List<String> enrolledStudents, List<String> grades, Date createdDate, Date updatedDate) {
         this.name = name;
         this.semester = semester;
         this.facultyId = facultyId;
@@ -62,9 +38,13 @@ public class Course {
         this.assignments = assignments;
         this.quizzes = quizzes;
         this.announcements = announcements;
+        this.enrolledStudents = enrolledStudents;
+        this.grades = grades;
+        this.createdDate = createdDate;
+        this.updatedDate = updatedDate;
     }
 
-    // Getters and setters
+    // Getters and Setters
     public String getId() {
         return id;
     }
@@ -95,14 +75,6 @@ public class Course {
 
     public void setFacultyId(String facultyId) {
         this.facultyId = facultyId;
-    }
-
-    public Faculty getFaculty() {
-        return faculty;
-    }
-
-    public void setFaculty(Faculty faculty) {
-        this.faculty = faculty;
     }
 
     public boolean isPublished() {
@@ -161,11 +133,11 @@ public class Course {
         this.enrolledStudents = enrolledStudents;
     }
 
-    public List<Grade> getGrades() {
+    public List<String> getGrades() {
         return grades;
     }
 
-    public void setGrades(List<Grade> grades) {
+    public void setGrades(List<String> grades) {
         this.grades = grades;
     }
 

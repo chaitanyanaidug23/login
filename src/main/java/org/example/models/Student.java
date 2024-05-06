@@ -9,18 +9,18 @@ public class Student {
     private String id;
     private String name;
     private String email;
-    private String courseId;  // Add this field to represent the course ID
+    private String courseId;
 
-    // Constructors, getters, and setters
     public Student() {
     }
 
-    public Student(String id, String name, String email, String courseId) {
-        this.id = id;
+    public Student(String name, String email, String courseId) {
         this.name = name;
         this.email = email;
         this.courseId = courseId;
     }
+
+    // Getters and setters
 
     public String getId() {
         return id;
