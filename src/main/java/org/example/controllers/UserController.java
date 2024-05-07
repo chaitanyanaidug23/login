@@ -45,11 +45,13 @@ public class UserController {
                 .map(existingUser -> {
                     existingUser.setUsername(updatedUser.getUsername());
                     existingUser.setPassword(updatedUser.getPassword());
-                    existingUser.setRole(updatedUser.getRole());
+                    // Use setRole or setRoles based on your User model's design
+                    existingUser.setRole(updatedUser.getRole()); // Adjust this line according to your User model's role handling
                     User savedUser = userRepository.save(existingUser);
                     return ResponseEntity.ok().body(savedUser);
                 }).orElseGet(() -> ResponseEntity.notFound().build());
     }
+
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")

@@ -17,7 +17,9 @@ public class Quiz {
     public Quiz() {
     }
 
-    public Quiz(String courseId, String title, int duration, boolean isGraded, List<Question> questions) {
+    // Modified constructor to include ID
+    public Quiz(String id, String courseId, String title, int duration, boolean isGraded, List<Question> questions) {
+        this.id = id;
         this.courseId = courseId;
         this.title = title;
         this.duration = duration;

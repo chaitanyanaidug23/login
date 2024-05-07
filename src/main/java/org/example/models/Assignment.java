@@ -16,7 +16,8 @@ public class Assignment {
     public Assignment() {
     }
 
-    public Assignment(String courseId, String description, Date dueDate, Date postedDate) {
+    public Assignment(String id , String courseId, String description, Date dueDate, Date postedDate) {
+        this.id = id;
         this.courseId = courseId;
         this.description = description;
         this.dueDate = dueDate;

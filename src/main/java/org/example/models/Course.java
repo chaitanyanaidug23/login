@@ -26,9 +26,10 @@ public class Course {
     public Course() {
     }
 
-    public Course(String name, String semester, String facultyId, boolean published, String description,
+    public Course(String id, String name, String semester, String facultyId, boolean published, String description,
                   String syllabus, List<String> assignments, List<String> quizzes, List<String> announcements,
                   List<String> enrolledStudents, List<String> grades, Date createdDate, Date updatedDate) {
+        this.id = id;
         this.name = name;
         this.semester = semester;
         this.facultyId = facultyId;

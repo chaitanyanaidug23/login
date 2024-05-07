@@ -2,32 +2,32 @@ package org.example.models;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import java.util.HashSet;
+
+
+import java.util.Set;
 
 @Document(collection = "users")
 public class User {
     @Id
     private String id;
     private String username;
-    private String password; // Store hashed password
-    private String email;
-    private String role;
+    private String password;
+    private Set<String> roles = new HashSet<>();
 
     // Constructors, getters, and setters
+
     public User() {}
 
-    public User(String username, String password, String email, String role) {
+    public User(String username, String password, Set<String> roles) {
         this.username = username;
         this.password = password;
-        this.email = email;
-        this.role = role;
+        this.roles = roles;
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
+    // Single role getter for simplicity in some cases
+    public String getRole() {
+        return roles != null && !roles.isEmpty() ? roles.iterator().next() : null;
     }
 
     public String getUsername() {
@@ -46,19 +46,17 @@ public class User {
         this.password = password;
     }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
+    // Single role setter for simplicity
     public void setRole(String role) {
-        this.role = role;
+        this.roles = Set.of(role); // This replaces all existing roles with the new single role
+    }
+
+    // Standard getters and setters for other fields and roles
+    public Set<String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<String> roles) {
+        this.roles = roles;
     }
 }

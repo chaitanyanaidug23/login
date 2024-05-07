@@ -18,7 +18,9 @@ public class Grade {
     public Grade() {
     }
 
-    public Grade(String studentId, String courseId, String assignmentId, String quizId, String value, Date dateAwarded) {
+    // Constructor with ID parameter
+    public Grade(String id, String studentId, String courseId, String assignmentId, String quizId, String value, Date dateAwarded) {
+        this.id = id;
         this.studentId = studentId;
         this.courseId = courseId;
         this.assignmentId = assignmentId;
@@ -27,6 +29,7 @@ public class Grade {
         this.dateAwarded = dateAwarded;
     }
 
+    // Getters and Setters
     public String getId() {
         return id;
     }

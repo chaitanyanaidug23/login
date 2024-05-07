@@ -14,7 +14,9 @@ public class Student {
     public Student() {
     }
 
-    public Student(String name, String email, String courseId) {
+    // Modified constructor to include ID
+    public Student(String id, String name, String email, String courseId) {
+        this.id = id;
         this.name = name;
         this.email = email;
         this.courseId = courseId;

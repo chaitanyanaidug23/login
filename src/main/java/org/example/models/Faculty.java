@@ -16,7 +16,9 @@ public class Faculty {
     public Faculty() {
     }
 
-    public Faculty(String name, String email, String department, List<String> courses) {
+    // Enhanced constructor including the ID parameter
+    public Faculty(String id, String name, String email, String department, List<String> courses) {
+        this.id = id;
         this.name = name;
         this.email = email;
         this.department = department;
@@ -24,7 +26,6 @@ public class Faculty {
     }
 
     // Getters and setters
-
     public String getId() {
         return id;
     }

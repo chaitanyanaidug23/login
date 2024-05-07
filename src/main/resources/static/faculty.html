@@ -4,191 +4,117 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Faculty Dashboard</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
-        header {
-            background-color: #007BFF;
-            color: white;
-            padding: 10px 20px;
-            text-align: center;
-        }
-        select, button, input, textarea {
-            margin: 10px;
-            padding: 8px;
-        }
-        section {
-            margin: 20px;
-            padding: 20px;
-            background: white;
-            border-radius: 8px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid #dddddd;
-            text-align: left;
-            padding: 8px;
-        }
-        th {
-            background-color: #007BFF;
-            color: white;
-        }
-    </style>
+    <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
 <header>
-    <h1 id="welcomeMessage">Faculty Dashboard</h1>
+    <h1>Faculty Dashboard</h1>
 </header>
+<main>
+    <section id="faculty-selection">
+        <h2>Select Faculty</h2>
+        <select id="facultyDropdown" onchange="updateFacultyCourses()">
+            <option value="">Choose a Faculty</option>
+            <option value="faculty1">Faculty1</option>
+            <option value="faculty2">Faculty2</option>
+            <option value="faculty3">Faculty3</option>
+            <option value="faculty4">Faculty4</option>
+            <option value="faculty5">Faculty5</option>
+        </select>
+        <p id="welcomeMessage"></p>
+    </section>
 
-<div>
-    <label for="facultySelector">Select Faculty:</label>
-    <select id="facultySelector" onchange="updateFacultySelection()">
-        <option value="">--Select a Faculty--</option>
-        <option value="faculty1">Faculty 1</option>
-        <option value="faculty2">Faculty 2</option>
-        <option value="faculty3">Faculty 3</option>
-        <option value="faculty4">Faculty 4</option>
-        <option value="faculty5">Faculty 5</option>
-    </select>
-</div>
+    <section id="courses-section">
+        <h2>Courses Taught</h2>
+        <div id="coursesContainer"></div>
+    </section>
 
-<section id="coursesSection" style="display: none;">
-    <h2>Courses Taught</h2>
-    <table id="courses-table">
-        <thead>
-        <tr>
-            <th>S/N</th>
-            <th>Course Name</th>
-            <th>Semester</th>
-            <th>Category</th>
-            <th>Syllabus</th>
-        </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-    <button onclick="fetchCoursesByFaculty()">Refresh Courses</button>
-</section>
+    <section id="student-list">
+        <h2>View Students</h2>
+        <p>Select a course to view its students.</p>
+        <select id="studentCourseSelect" onchange="fetchStudents(this.value)">
+            <option value="">Select a course</option>
+            <!-- Course options will be dynamically populated -->
+        </select>
+        <div id="studentsContainer"></div>
+    </section>
 
-<section id="managementSection" style="display: none;">
-    <h2>Manage Course</h2>
-    <div id="managementActions">
-        <!-- Form to add quizzes -->
-        <form id="quizForm" onsubmit="addQuiz(event)">
-            <h3>Add Quiz</h3>
-            <input type="text" id="quizTitle" placeholder="Quiz Title" required>
-            <input type="number" id="quizDuration" placeholder="Duration (in minutes)" required>
-            <input type="checkbox" id="isGraded">
-            <label for="isGraded">Is Graded?</label>
-            <button type="submit">Add Quiz</button>
-        </form>
+    <section id="grade-management">
+        <h2>Manage Grades</h2>
+        <p>Select a course to view and assign grades.</p>
+        <select id="gradesCourseSelect" onchange="fetchStudentsForGrading(this.value)">
+            <option value="">Select a course</option>
+            <!-- Course options will be dynamically populated -->
+        </select>
+        <select id="studentSelect" style="margin-top: 10px;">
+            <option value="">Select a student</option>
+            <!-- Student options will be dynamically populated -->
+        </select>
+        <select id="gradeSelect" style="margin-top: 10px;">
+            <option value="">Select Grade</option>
+            <option value="A">A</option>
+            <option value="A-">A-</option>
+            <option value="B+">B+</option>
+            <option value="B">B</option>
+            <option value="B-">B-</option>
+            <option value="C+">C+</option>
+            <option value="C">C</option>
+            <option value="D">D</option>
+            <option value="F">F</option>
+        </select>
+        <button onclick="assignGrade()" style="margin-top: 10px;">Assign Grade</button>
+        <div id="gradesContainer"></div>
+    </section>
 
-        <!-- Form to add assignments -->
-        <form id="assignmentForm" onsubmit="addAssignment(event)">
-            <h3>Add Assignment</h3>
-            <input type="text" id="assignmentTitle" placeholder="Assignment Title" required>
-            <input type="text" id="assignmentDueDate" placeholder="Due Date" required>
-            <button type="submit">Add Assignment</button>
-        </form>
-
-        <!-- Form to post announcements -->
-        <form id="announcementForm" onsubmit="postAnnouncement(event)">
-            <h3>Post Announcement</h3>
-            <textarea id="announcementText" placeholder="Enter announcement" required></textarea>
+    <section id="announcements">
+        <h2>Announcements</h2>
+        <p>Select a course to post an announcement.</p>
+        <select id="announcementCourseSelect" style="margin-bottom: 10px;">
+            <option value="">Select a course</option>
+            <!-- Course options will be dynamically populated -->
+        </select>
+        <form onsubmit="postAnnouncement(); return false;">
+            <input type="text" id="announcementText" placeholder="Type your announcement here" required>
             <button type="submit">Post Announcement</button>
         </form>
-    </div>
-</section>
+    </section>
 
-<script>
-    const baseUrl = '/api/faculty';
-    let currentFacultyId = '';
-    let selectedCourseId = ''; // This should be set when a specific course is managed
-
-    function updateFacultySelection() {
-        currentFacultyId = document.getElementById('facultySelector').value;
-        if (currentFacultyId) {
-            document.getElementById('welcomeMessage').textContent = `Welcome, ${currentFacultyId}`;
-            fetchCoursesByFaculty();
-            document.getElementById('coursesSection').style.display = 'block';
-            document.getElementById('managementSection').style.display = 'block';
-        } else {
-            document.getElementById('welcomeMessage').textContent = `Faculty Dashboard`;
-            document.getElementById('coursesSection').style.display = 'none';
-            document.getElementById('managementSection').style.display = 'none';
-        }
-    }
-
-    function fetchCoursesByFaculty() {
-        fetch(`${baseUrl}/${currentFacultyId}/courses`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (!data.success) {
-                    console.error('Failed to fetch courses:', data.message);
-                    return;
-                }
-                const courses = data.data;
-                const table = document.getElementById('courses-table').getElementsByTagName('tbody')[0];
-                table.innerHTML = ''; // Clear previous entries
-                courses.forEach((course, index) => {
-                    const row = table.insertRow();
-                    row.insertCell().textContent = index + 1;
-                    row.insertCell().textContent = course.name;
-                    row.insertCell().textContent = course.semester;
-                    row.insertCell().textContent = course.published ? 'Published' : 'Unpublished';
-                    const syllabusCell = row.insertCell();
-                    syllabusCell.innerHTML = `<button onclick="selectCourseForManagement('${course.id}')">Manage</button>`;
-                });
-            })
-            .catch(error => {
-                console.error('Error fetching courses:', error);
-                alert('Failed to fetch courses. Please check the console for errors.');
-            });
-    }
+    <section id="assignments-quizzes">
+        <h2>Assignments and Quizzes</h2>
+        <div>
+            <h3>Add Assignment</h3>
+            <p>Select a course to add an assignment.</p>
+            <form onsubmit="addAssignment(); return false;">
+                <select id="assignmentCourseSelect" onchange="enableAssignmentInputs()">
+                    <option value="">Select Course</option>
+                    <!-- Options will be dynamically filled -->
+                </select>
+                <input type="text" id="assignmentDescription" placeholder="Assignment Description" disabled required>
+                <input type="date" id="assignmentDueDate" disabled required>
+                <button type="submit" disabled>Add Assignment</button>
+            </form>
+        </div>
+        <div>
+            <h3>Add Quiz</h3>
+            <p>Select a course to add a quiz.</p>
+            <form onsubmit="addQuiz(); return false;">
+                <select id="quizCourseSelect" onchange="enableQuizInputs()">
+                    <option value="">Select Course</option>
+                    <!-- Options will be dynamically filled -->
+                </select>
+                <input type="text" id="quizTitle" placeholder="Quiz Title" disabled required>
+                <input type="number" id="quizDuration" placeholder="Duration (minutes)" disabled required>
+                <input type="checkbox" id="quizIsGraded" disabled>
+                <label for="quizIsGraded">Is Graded?</label>
+                <button type="submit" disabled>Add Quiz</button>
+            </form>
+        </div>
+    </section>
 
 
-    function selectCourseForManagement(courseId) {
-        selectedCourseId = courseId;
-        // Additional logic to populate management section or enable management features
-    }
+</main>
 
-    function addQuiz(event) {
-        event.preventDefault();
-        if (!selectedCourseId) {
-            alert('Please select a course first.');
-            return;
-        }
-        // Implement quiz adding logic here
-    }
-
-    function addAssignment(event) {
-        event.preventDefault();
-        if (!selectedCourseId) {
-            alert('Please select a course first.');
-            return;
-        }
-        // Implement assignment adding logic here
-    }
-
-    function postAnnouncement(event) {
-        event.preventDefault();
-        if (!selectedCourseId) {
-            alert('Please select a course first.');
-            return;
-        }
-        // Implement announcement posting logic here
-    }
-</script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="/dashboard.js"></script>
 </body>
 </html>
